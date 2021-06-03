@@ -8,7 +8,7 @@
         <LangVersion>latest</LangVersion>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        <AssemblyVersion>0.0.0.0</AssemblyVersion>
+        <AssemblyVersion>0.1.0.0</AssemblyVersion>
         <Company>WEGFan</Company>
         <PathMap>$(MSBuildProjectDirectory)=/ChinaMirror/</PathMap>
     </PropertyGroup>
