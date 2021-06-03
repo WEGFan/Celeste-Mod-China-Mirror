@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <RootNamespace>Celeste.Mod.ChinaMirror</RootNamespace>
+        <AssemblyName>ChinaMirror</AssemblyName>
+        <TargetFramework>net452</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <AssemblyVersion>0.0.0.0</AssemblyVersion>
+        <Company>WEGFan</Company>
+        <PathMap>$(MSBuildProjectDirectory)=/ChinaMirror/</PathMap>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <OutputPath>bin\</OutputPath>
+        <DebugType>full</DebugType>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PlatformTarget>x86</PlatformTarget>
+        <Prefer32bit>true</Prefer32bit>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <OutputPath>bin\</OutputPath>
+        <DebugSymbols>true</DebugSymbols>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <PlatformTarget>x86</PlatformTarget>
+        <Prefer32bit>true</Prefer32bit>
+        <DebugType>full</DebugType>
+    </PropertyGroup>
+    <Choose>
+        <When Condition="Exists('lib')">
+            <ItemGroup>
+                <Reference Include="Celeste">
+                    <Private>false</Private>
+                    <HintPath>lib\Celeste.exe</HintPath>
+                </Reference>
+                <Reference Include="MMHOOK_Celeste">
+                    <Private>false</Private>
+                    <HintPath>lib\MMHOOK_Celeste.dll</HintPath>
+                </Reference>
+                <Reference Include="FNA">
+                    <Private>false</Private>
+                    <HintPath>lib\FNA.dll</HintPath>
+                </Reference>
+            </ItemGroup>
+        </When>
+        <Otherwise>
+            <ItemGroup>
+                <Reference Include="Celeste">
+                    <Private>false</Private>
+                    <HintPath>lib-stripped\Celeste.exe</HintPath>
+                </Reference>
+                <Reference Include="MMHOOK_Celeste">
+                    <Private>false</Private>
+                    <HintPath>lib-stripped\MMHOOK_Celeste.dll</HintPath>
+                </Reference>
+                <Reference Include="FNA">
+                    <Private>false</Private>
+                    <HintPath>lib-stripped\FNA.dll</HintPath>
+                </Reference>
+            </ItemGroup>
+        </Otherwise>
+    </Choose>
+    <ItemGroup>
+        <PackageReference Include="Mono.Cecil" Version="0.11.3" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MonoMod" Version="21.03.01.01" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MonoMod.RuntimeDetour" Version="21.03.01.01" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="21.03.01.01" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MonoMod.Utils" Version="21.03.01.01" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="DotNetZip" Version="1.13.8" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="System.ValueTuple" Version="4.5.0" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="YamlDotNet" Version="8.1.2" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="Jdenticon-net" Version="2.2.1" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" PrivateAssets="all" ExcludeAssets="runtime" />
+    </ItemGroup>
+</Project>

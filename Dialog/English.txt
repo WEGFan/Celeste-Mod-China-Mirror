@@ -1,0 +1,6 @@
+ChinaMirror_mod_name=Celeste Mod China Mirror
+
+ChinaMirror_options_Enabled=Enabled
+
+ChinaMirror_text_PreparingFiles=Server is preparing files, please wait...
+ChinaMirror_text_WaitTimeout=Timeout when waiting, please try later.

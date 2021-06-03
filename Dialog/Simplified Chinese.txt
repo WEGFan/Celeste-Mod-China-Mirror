@@ -1,0 +1,6 @@
+ChinaMirror_mod_name=蔚蓝 Mod 中国镜像
+
+ChinaMirror_options_Enabled=开关
+
+ChinaMirror_text_PreparingFiles=服务器正在准备文件，请稍等…
+ChinaMirror_text_WaitTimeout=等待超时，请稍后重试。
