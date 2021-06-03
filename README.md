@@ -1,7 +1,5 @@
 # Celeste Mod China Mirror
 
----
-
 ## Features
 
 - Speed up in-game mod downloading in China.
