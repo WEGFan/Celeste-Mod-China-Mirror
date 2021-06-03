@@ -4,6 +4,6 @@
   DLL: bin/ChinaMirror.dll
   Dependencies:
     - Name: Everest
-      Version: 1.2802.0
+      Version: 1.2803.0
     - Name: Celeste
       Version: 1.4.0.0
