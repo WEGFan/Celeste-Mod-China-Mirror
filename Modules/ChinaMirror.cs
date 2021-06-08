@@ -116,7 +116,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                         if (modReady) {
                             break;
                         }
-                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).Seconds}s)", LogLevel.Info);
+                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
                         if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
                             LogUtil.Log($"{filename} - waiting for server preparing files timeout", LogLevel.Warn);
                             selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean("AUTOUPDATECHECKER_DOWNLOADING")} ({Dialog.Clean(DialogId.Text.WaitTimeout)})";
@@ -171,7 +171,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                         if (modReady) {
                             break;
                         }
-                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).Seconds}s)", LogLevel.Info);
+                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
 
                         if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
                             LogUtil.Log($"{filename} - waiting for server preparing files timeout", LogLevel.Warn);
@@ -238,7 +238,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                         if (modReady) {
                             break;
                         }
-                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).Seconds}s)", LogLevel.Info);
+                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
                         if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
                             LogUtil.Log($"{filename} - waiting for server preparing files timeout", LogLevel.Warn);
                             button.Label = $"{ModUpdaterHelper.FormatModName(modUpdateInfo.Name)} ({Dialog.Clean(DialogId.Text.WaitTimeout)})";
