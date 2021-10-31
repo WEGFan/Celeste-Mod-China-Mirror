@@ -36,7 +36,7 @@ if process.returncode != 0:
     sys.exit()
 
 # package
-file_list = ['./bin/ChinaMirror.*', './Dialog/**/*', './everest.yaml']
+file_list = ['./bin/**/*', './Dialog/**/*', './everest.yaml']
 
 os.makedirs('dist', exist_ok=True)
 with zipfile.ZipFile(f'dist/{mod_name}_v{mod_version}.zip', 'w', zipfile.ZIP_DEFLATED) as f:
