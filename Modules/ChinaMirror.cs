@@ -104,29 +104,13 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.EmitDelegate<Action<AutoModUpdater, ModUpdateInfo, string>>((self, modUpdateInfo, progressString) => {
                 DDW_AutoModUpdater selfWrapper = new DDW_AutoModUpdater(self);
 
-                string filename = modUpdateInfo.URL.Split('/').Last();
-                using (WebClient client = new WebClient()) {
-                    LogUtil.Log($"{filename} - started downloading on server", LogLevel.Info);
-                    client.DownloadString($"https://celeste.weg.fan/api/start/{filename}");
-                    DateTime startTime = DateTime.Now;
-                    LogUtil.Log($"{filename} - checking server status", LogLevel.Info);
-                    while (true) {
-                        string status = client.DownloadString($"https://celeste.weg.fan/api/status/{filename}").Trim();
-                        bool modReady = status == "1";
-                        if (modReady) {
-                            break;
-                        }
-                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
-                        if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
-                            LogUtil.Log($"{filename} - waiting for server preparing files timeout", LogLevel.Warn);
-                            selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean("AUTOUPDATECHECKER_DOWNLOADING")} ({Dialog.Clean(DialogId.Text.WaitTimeout)})";
-                            throw new TimeoutException("Waiting for server preparing files timeout");
-                        }
+                PrepareFile(modUpdateInfo, timeout => {
+                    if (timeout) {
+                        selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean("AUTOUPDATECHECKER_DOWNLOADING")} ({Dialog.Clean(DialogId.Text.WaitTimeout)})";
+                    } else {
                         selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean("AUTOUPDATECHECKER_DOWNLOADING")} ({Dialog.Clean(DialogId.Text.PreparingFiles)})";
-                        Thread.Sleep(2000);
                     }
-                    LogUtil.Log($"{filename} - start downloading", LogLevel.Info);
-                }
+                });
             });
         }
 
@@ -159,30 +143,13 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.EmitDelegate<Action<object, ModUpdateInfo>>((self, modUpdateInfo) => {
                 DDW_OuiDependencyDownloader selfWrapper = new DDW_OuiDependencyDownloader(self);
 
-                string filename = modUpdateInfo.URL.Split('/').Last();
-                using (WebClient client = new WebClient()) {
-                    LogUtil.Log($"{filename} - started downloading on server", LogLevel.Info);
-                    client.DownloadString($"https://celeste.weg.fan/api/start/{filename}");
-                    DateTime startTime = DateTime.Now;
-                    LogUtil.Log($"{filename} - checking server status", LogLevel.Info);
-                    while (true) {
-                        string status = client.DownloadString($"https://celeste.weg.fan/api/status/{filename}").Trim();
-                        bool modReady = status == "1";
-                        if (modReady) {
-                            break;
-                        }
-                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
-
-                        if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
-                            LogUtil.Log($"{filename} - waiting for server preparing files timeout", LogLevel.Warn);
-                            selfWrapper.Lines[selfWrapper.Lines.Count - 1] = Dialog.Clean(DialogId.Text.WaitTimeout);
-                            throw new TimeoutException("Waiting for server preparing files timeout");
-                        }
+                PrepareFile(modUpdateInfo, timeout => {
+                    if (timeout) {
+                        selfWrapper.Lines[selfWrapper.Lines.Count - 1] = Dialog.Clean(DialogId.Text.WaitTimeout);
+                    } else {
                         selfWrapper.Lines[selfWrapper.Lines.Count - 1] = Dialog.Clean(DialogId.Text.PreparingFiles);
-                        Thread.Sleep(2000);
                     }
-                    LogUtil.Log($"{filename} - start downloading", LogLevel.Info);
-                }
+                });
             });
         }
 
@@ -226,30 +193,42 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.Emit(OpCodes.Ldarg, p_ModUpdateInfo);
             cursor.Emit(OpCodes.Ldarg, p_TextMenu_Button);
             cursor.EmitDelegate<Action<ModUpdateInfo, TextMenu.Button>>((modUpdateInfo, button) => {
-                string filename = modUpdateInfo.URL.Split('/').Last();
-                using (WebClient client = new WebClient()) {
-                    LogUtil.Log($"{filename} - started downloading on server", LogLevel.Info);
-                    client.DownloadString($"https://celeste.weg.fan/api/start/{filename}");
-                    DateTime startTime = DateTime.Now;
-                    LogUtil.Log($"{filename} - checking server status", LogLevel.Info);
-                    while (true) {
-                        string status = client.DownloadString($"https://celeste.weg.fan/api/status/{filename}").Trim();
-                        bool modReady = status == "1";
-                        if (modReady) {
-                            break;
-                        }
-                        LogUtil.Log($"{filename} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
-                        if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
-                            LogUtil.Log($"{filename} - waiting for server preparing files timeout", LogLevel.Warn);
-                            button.Label = $"{ModUpdaterHelper.FormatModName(modUpdateInfo.Name)} ({Dialog.Clean(DialogId.Text.WaitTimeout)})";
-                            throw new TimeoutException("Waiting for server preparing files timeout");
-                        }
+                PrepareFile(modUpdateInfo, timeout => {
+                    if (timeout) {
+                        button.Label = $"{ModUpdaterHelper.FormatModName(modUpdateInfo.Name)} ({Dialog.Clean(DialogId.Text.WaitTimeout)})";
+                    } else {
                         button.Label = $"{ModUpdaterHelper.FormatModName(modUpdateInfo.Name)} ({Dialog.Clean(DialogId.Text.PreparingFiles)})";
-                        Thread.Sleep(2000);
                     }
-                    LogUtil.Log($"{filename} - start downloading", LogLevel.Info);
-                }
+                });
             });
+        }
+
+        public delegate void PrepareFileProgressCallback(bool timeout);
+
+        private static void PrepareFile(ModUpdateInfo modUpdateInfo, PrepareFileProgressCallback progressCallback) {
+            string fileName = modUpdateInfo.URL.Split('/').Last();
+            using (WebClient client = new WebClient()) {
+                LogUtil.Log($"{fileName} - started downloading on server", LogLevel.Info);
+                client.DownloadString($"https://celeste.weg.fan/api/start/{fileName}");
+                DateTime startTime = DateTime.Now;
+                LogUtil.Log($"{fileName} - checking server status", LogLevel.Info);
+                while (true) {
+                    string status = client.DownloadString($"https://celeste.weg.fan/api/status/{fileName}").Trim();
+                    bool modReady = status == "1";
+                    if (modReady) {
+                        break;
+                    }
+                    LogUtil.Log($"{fileName} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
+                    if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
+                        LogUtil.Log($"{fileName} - waiting for server preparing files timeout", LogLevel.Warn);
+                        progressCallback(true);
+                        throw new TimeoutException("Waiting for server preparing files timeout");
+                    }
+                    progressCallback(false);
+                    Thread.Sleep(2000);
+                }
+                LogUtil.Log($"{fileName} - start downloading", LogLevel.Info);
+            }
         }
     }
 }
