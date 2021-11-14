@@ -102,7 +102,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.Emit(OpCodes.Ldloc, var_progressString_DisplayClass);
             cursor.Emit(OpCodes.Ldfld, f_progressString);
             cursor.EmitDelegate<Action<AutoModUpdater, ModUpdateInfo, string>>((self, modUpdateInfo, progressString) => {
-                AutoModUpdaterWrapper selfWrapper = new AutoModUpdaterWrapper(self);
+                DDW_AutoModUpdater selfWrapper = new DDW_AutoModUpdater(self);
 
                 string filename = modUpdateInfo.URL.Split('/').Last();
                 using (WebClient client = new WebClient()) {
@@ -157,7 +157,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.Emit(OpCodes.Ldarg, p_ModUpdateInfo);
             cursor.EmitDelegate<Action<object, ModUpdateInfo>>((self, modUpdateInfo) => {
-                OuiDependencyDownloaderWrapper selfWrapper = new OuiDependencyDownloaderWrapper(self);
+                DDW_OuiDependencyDownloader selfWrapper = new DDW_OuiDependencyDownloader(self);
 
                 string filename = modUpdateInfo.URL.Split('/').Last();
                 using (WebClient client = new WebClient()) {
