@@ -14,7 +14,6 @@ namespace Celeste.Mod.ChinaMirror.Modules {
     public static class ChineseMirror {
         public static void Load() {
             IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl += patch_ModUpdaterHelper_getModUpdaterDatabaseUrl;
-            // IL.Celeste.Mod.Everest.Updater.DownloadFileWithProgress += patch_Updater_DownloadFileWithProgress;
             IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod += patch_OuiModUpdateList_downloadMod;
             IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency += patch_OuiDependencyDownloader_downloadDependency;
             IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate += patch_AutoModUpdater_autoUpdate;
@@ -22,7 +21,6 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
         public static void Unload() {
             IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl -= patch_ModUpdaterHelper_getModUpdaterDatabaseUrl;
-            // IL.Celeste.Mod.Everest.Updater.DownloadFileWithProgress -= patch_Updater_DownloadFileWithProgress;
             IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod -= patch_OuiModUpdateList_downloadMod;
             IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency -= patch_OuiDependencyDownloader_downloadDependency;
             IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate -= patch_AutoModUpdater_autoUpdate;
@@ -37,20 +35,6 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdstr("https://everestapi.github.io/modupdater.txt"));
             cursor.Next.Operand = "https://celeste.weg.fan/api/files/modupdater.txt";
-        }
-
-        /// <summary>
-        /// Patch <see cref="Everest.Updater.DownloadFileWithProgress"/>.
-        /// Increase the timeout of <see cref="HttpWebRequest.Timeout"/> and <see cref="HttpWebRequest.ReadWriteTimeout"/>
-        /// </summary>
-        private static void patch_Updater_DownloadFileWithProgress(ILContext il) {
-            ILCursor cursor = new ILCursor(il);
-            for (int i = 0; i < 2; i++) {
-                cursor.GotoNext(MoveType.After,
-                    instr => instr.MatchDup(),
-                    instr => instr.MatchLdcI4(10000));
-                cursor.Prev.Operand = 3 * 60 * 1000;
-            }
         }
 
         /// <summary>
