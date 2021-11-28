@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
+using Celeste.Mod.ChinaMirror.Endpoints;
 using Celeste.Mod.ChinaMirror.Utils;
 using Celeste.Mod.Helpers;
 using Celeste.Mod.UI;
@@ -9,11 +10,13 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.Utils;
+using RestSharp;
 
 namespace Celeste.Mod.ChinaMirror.Modules {
     public static class ChineseMirror {
         public static void Load() {
             IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl += patch_ModUpdaterHelper_getModUpdaterDatabaseUrl;
+            IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList += patch_ModUpdaterHelper_DownloadModUpdateList;
             IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod += patch_OuiModUpdateList_downloadMod;
             IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency += patch_OuiDependencyDownloader_downloadDependency;
             IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate += patch_AutoModUpdater_autoUpdate;
@@ -21,6 +24,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
         public static void Unload() {
             IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl -= patch_ModUpdaterHelper_getModUpdaterDatabaseUrl;
+            IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList -= patch_ModUpdaterHelper_DownloadModUpdateList;
             IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod -= patch_OuiModUpdateList_downloadMod;
             IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency -= patch_OuiDependencyDownloader_downloadDependency;
             IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate -= patch_AutoModUpdater_autoUpdate;
@@ -34,7 +38,43 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             ILCursor cursor = new ILCursor(il);
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdstr("https://everestapi.github.io/modupdater.txt"));
-            cursor.Next.Operand = "https://celeste.weg.fan/api/files/modupdater.txt";
+            cursor.Next.Operand = new Uri(ServerApi.Host, "/api/v1/file/modupdater.txt").ToString();
+        }
+
+        /// <summary>
+        /// Patch <see cref="Helpers.ModUpdaterHelper.DownloadModUpdateList"/>.
+        /// Deserialize yaml to <see cref="ModUpdateInfoExtended"/> instead to add additional fields.
+        /// </summary>
+        private static void patch_ModUpdaterHelper_DownloadModUpdateList(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+
+            /*
+                // string input = webClient.DownloadString(modUpdaterDatabaseUrl);
+                IL_0023: ldloc.2
+                IL_0024: ldloc.1
+                IL_0025: callvirt  instance string [System]System.Net.WebClient::DownloadString(string)
+                IL_002a: stloc.3
+                // dictionary = YamlHelper.Deserializer.Deserialize<Dictionary<string, ModUpdateInfo>>(input);
+                IL_002b: ldsfld    class [YamlDotNet]YamlDotNet.Serialization.IDeserializer Celeste.Mod.YamlHelper::Deserializer
+                IL_0030: ldloc.3
+                IL_0031: callvirt  instance !!0 [YamlDotNet]YamlDotNet.Serialization.IDeserializer::Deserialize<class [mscorlib]System.Collections.Generic.Dictionary`2<string, class Celeste.Mod.Helpers.ModUpdateInfo>>(string)
+                IL_0036: stloc.0
+            */
+            cursor.GotoNext(MoveType.Before,
+                instr => instr.MatchLdsfld("Celeste.Mod.YamlHelper", "Deserializer"));
+            cursor.Prev.MatchStloc(out int var_yamlData_index);
+            VariableReference var_yamlData = il.Body.Variables[var_yamlData_index];
+
+            cursor.GotoNext(MoveType.After,
+                instr => instr.OpCode == OpCodes.Callvirt &&
+                    (instr.Operand as MethodReference).GetID() == "T YamlDotNet.Serialization.IDeserializer::Deserialize<System.Collections.Generic.Dictionary`2<System.String,Celeste.Mod.Helpers.ModUpdateInfo>>(System.String)");
+
+            cursor.Emit(OpCodes.Pop);
+            cursor.Emit(OpCodes.Ldloc, var_yamlData);
+            cursor.EmitDelegate<Func<string, Dictionary<string, ModUpdateInfo>>>(yamlData => {
+                return YamlHelper.Deserializer.Deserialize<Dictionary<string, ModUpdateInfoExtended>>(yamlData)
+                    .ToDictionary(kvp => kvp.Key, kvp => (ModUpdateInfo)kvp.Value);
+            });
         }
 
         /// <summary>
@@ -190,29 +230,37 @@ namespace Celeste.Mod.ChinaMirror.Modules {
         public delegate void PrepareFileProgressCallback(bool timeout);
 
         private static void PrepareFile(ModUpdateInfo modUpdateInfo, PrepareFileProgressCallback progressCallback) {
-            string fileName = modUpdateInfo.URL.Split('/').Last();
-            using (WebClient client = new WebClient()) {
-                LogUtil.Log($"{fileName} - started downloading on server", LogLevel.Info);
-                client.DownloadString($"https://celeste.weg.fan/api/start/{fileName}");
-                DateTime startTime = DateTime.Now;
-                LogUtil.Log($"{fileName} - checking server status", LogLevel.Info);
-                while (true) {
-                    string status = client.DownloadString($"https://celeste.weg.fan/api/status/{fileName}").Trim();
-                    bool modReady = status == "1";
-                    if (modReady) {
-                        break;
-                    }
-                    LogUtil.Log($"{fileName} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
-                    if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
-                        LogUtil.Log($"{fileName} - waiting for server preparing files timeout", LogLevel.Warn);
-                        progressCallback(true);
-                        throw new TimeoutException("Waiting for server preparing files timeout");
-                    }
-                    progressCallback(false);
-                    Thread.Sleep(2000);
-                }
-                LogUtil.Log($"{fileName} - start downloading", LogLevel.Info);
+            if (modUpdateInfo is not ModUpdateInfoExtended info) {
+                LogUtil.Log($"{modUpdateInfo.Name} - mod update info is not ModUpdateInfoExtended", LogLevel.Warn);
+                return;
             }
+            string fileName = info.MirrorFileName;
+            LogUtil.Log($"{fileName} - started downloading on server", LogLevel.Info);
+            ServerApi.StartDownload(MirrorFileType.Mod, fileName);
+            DateTime startTime = DateTime.Now;
+            LogUtil.Log($"{fileName} - checking server status", LogLevel.Info);
+            while (true) {
+                IRestResponse<Response<FilePrepareStatus>> statusResponse = ServerApi.GetMirrorStatus(MirrorFileType.Mod, fileName);
+                FilePrepareStatus progress = statusResponse.Data.Data;
+                if (progress.UploadProgress.Current > 0) {
+                    // assume download is completed if the upload is started
+                    progress.DownloadProgress.Current = progress.DownloadProgress.Total;
+                }
+                long current = progress.DownloadProgress.Current + progress.UploadProgress.Current;
+                long total = progress.DownloadProgress.Total + progress.UploadProgress.Total;
+                if (total != 0 && current == total) {
+                    break;
+                }
+                LogUtil.Log($"{fileName} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
+                if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
+                    LogUtil.Log($"{fileName} - waiting for server preparing files timeout", LogLevel.Warn);
+                    progressCallback(true);
+                    throw new TimeoutException("Waiting for server preparing files timeout");
+                }
+                progressCallback(false);
+                Thread.Sleep(2000);
+            }
+            LogUtil.Log($"{fileName} - start downloading", LogLevel.Info);
         }
     }
 }
