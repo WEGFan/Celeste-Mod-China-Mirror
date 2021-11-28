@@ -3,6 +3,7 @@ using Celeste.Mod.ChinaMirror.Modules;
 
 namespace Celeste.Mod.ChinaMirror {
     public class ChinaMirrorModule : EverestModule {
+
         public ChinaMirrorModule() {
             Instance = this;
         }
@@ -13,22 +14,23 @@ namespace Celeste.Mod.ChinaMirror {
 
         public static ChinaMirrorSettings Settings => Instance._Settings as ChinaMirrorSettings;
 
-        public static bool Hooked = false;
+        public static bool Loaded = false;
 
         public override void Load() {
-            if (Hooked || !Settings.Enabled) {
+            if (Loaded || !Settings.Enabled) {
                 return;
             }
-            ChineseMirror.Load();
-            Hooked = true;
+            Modules.ChinaMirror.Load();
+            Loaded = true;
         }
 
         public override void Unload() {
-            if (!Hooked) {
+            if (!Loaded) {
                 return;
             }
-            ChineseMirror.Unload();
-            Hooked = false;
+            Modules.ChinaMirror.Unload();
+            Loaded = false;
         }
+
     }
 }

@@ -13,7 +13,8 @@ using MonoMod.Utils;
 using RestSharp;
 
 namespace Celeste.Mod.ChinaMirror.Modules {
-    public static class ChineseMirror {
+    public static class ChinaMirror {
+
         public static void Load() {
             IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl += patch_ModUpdaterHelper_getModUpdaterDatabaseUrl;
             IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList += patch_ModUpdaterHelper_DownloadModUpdateList;
@@ -285,5 +286,6 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             }
             LogUtil.Log($"{fileName} - start downloading", LogLevel.Info);
         }
+
     }
 }

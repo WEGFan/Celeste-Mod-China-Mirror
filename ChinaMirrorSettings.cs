@@ -3,6 +3,7 @@ using Celeste.Mod.ChinaMirror.Utils;
 namespace Celeste.Mod.ChinaMirror {
     [SettingName(DialogId.ModName)]
     public class ChinaMirrorSettings : EverestModuleSettings {
+
         public bool Enabled { get; set; } = true;
 
         public void CreateEnabledEntry(TextMenu textMenu, bool inGame) {
@@ -17,5 +18,6 @@ namespace Celeste.Mod.ChinaMirror {
                 });
             textMenu.Add(item);
         }
+
     }
 }
