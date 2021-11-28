@@ -29,6 +29,9 @@ with open('./CelesteModChinaMirror.csproj', 'r+', encoding='utf-8') as f:
 
     f.write(s)
 
+# clean the output files
+subprocess.run(['dotnet', 'clean'])
+
 # build the project
 process = subprocess.run(['dotnet', 'build', '--configuration', 'Release'])
 if process.returncode != 0:
