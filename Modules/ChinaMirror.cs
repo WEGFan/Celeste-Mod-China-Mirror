@@ -249,8 +249,10 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             string fileName = info.MirrorFileName;
             LogUtil.Log($"{fileName} - started downloading on server", LogLevel.Info);
             ServerApi.StartDownload(MirrorFileType.Mod, fileName);
+
             DateTime startTime = DateTime.Now;
-            LogUtil.Log($"{fileName} - checking server status", LogLevel.Info);
+            DateTime previousCurrentTime = DateTime.Now;
+            long previousCurrent = 0;
             while (true) {
                 IRestResponse<Response<FilePrepareStatus>> statusResponse = ServerApi.GetMirrorStatus(MirrorFileType.Mod, fileName);
                 FilePrepareStatus progress = statusResponse.Data.Data;
@@ -264,8 +266,17 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                 if (total != 0 && current == total) {
                     break;
                 }
-                LogUtil.Log($"{fileName} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
-                if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
+                if (current != previousCurrent) {
+                    previousCurrent = current;
+                    previousCurrentTime = DateTime.Now;
+                }
+
+                LogUtil.Log($"{fileName} - waiting for server preparing files {(DateTime.Now - startTime).TotalSeconds:F2}s ({progress})", LogLevel.Info);
+
+                bool timeout = total == 0
+                    ? DateTime.Now - startTime >= TimeSpan.FromSeconds(30)
+                    : DateTime.Now - previousCurrentTime >= TimeSpan.FromSeconds(10);
+                if (timeout) {
                     LogUtil.Log($"{fileName} - waiting for server preparing files timeout", LogLevel.Warn);
                     progressCallback(current, total, true);
                     throw new TimeoutException("Waiting for server preparing files timeout");
