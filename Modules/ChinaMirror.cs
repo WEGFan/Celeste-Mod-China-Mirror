@@ -281,7 +281,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                     progressCallback(current, total, true);
                     throw new TimeoutException("Waiting for server preparing files timeout");
                 }
-                Thread.Sleep(2000);
+                Thread.Sleep(200);
             }
             LogUtil.Log($"{fileName} - start downloading", LogLevel.Info);
         }
