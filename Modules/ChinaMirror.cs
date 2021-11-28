@@ -90,9 +90,9 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
                 PrepareFile(modUpdateInfo, timeout => {
                     if (timeout) {
-                        selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean("AUTOUPDATECHECKER_DOWNLOADING")} ({Dialog.Clean(DialogId.Text.WaitTimeout)})";
+                        selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean(DialogId.Text.WaitTimeout)}";
                     } else {
-                        selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean("AUTOUPDATECHECKER_DOWNLOADING")} ({Dialog.Clean(DialogId.Text.PreparingFiles)})";
+                        selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean(DialogId.Text.PreparingFiles)}";
                     }
                 });
             });
