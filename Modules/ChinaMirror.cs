@@ -128,11 +128,15 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.EmitDelegate<Action<AutoModUpdater, ModUpdateInfo, string>>((self, modUpdateInfo, progressString) => {
                 DDW_AutoModUpdater selfWrapper = new DDW_AutoModUpdater(self);
 
-                PrepareFile(modUpdateInfo, timeout => {
+                PrepareFile(modUpdateInfo, (current, total, timeout) => {
                     if (timeout) {
                         selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean(DialogId.Text.WaitTimeout)}";
-                    } else {
-                        selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean(DialogId.Text.PreparingFiles)}";
+                        return;
+                    }
+                    selfWrapper.modUpdatingMessage = $"{progressString} {Dialog.Clean(DialogId.Text.PreparingFiles)}";
+                    if (total != 0) {
+                        float percent = 100f * current / total;
+                        selfWrapper.modUpdatingMessage += $" ({percent:F0}%)";
                     }
                 });
             });
@@ -167,11 +171,15 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.EmitDelegate<Action<object, ModUpdateInfo>>((self, modUpdateInfo) => {
                 DDW_OuiDependencyDownloader selfWrapper = new DDW_OuiDependencyDownloader(self);
 
-                PrepareFile(modUpdateInfo, timeout => {
+                PrepareFile(modUpdateInfo, (current, total, timeout) => {
                     if (timeout) {
                         selfWrapper.Lines[selfWrapper.Lines.Count - 1] = Dialog.Clean(DialogId.Text.WaitTimeout);
-                    } else {
-                        selfWrapper.Lines[selfWrapper.Lines.Count - 1] = Dialog.Clean(DialogId.Text.PreparingFiles);
+                        return;
+                    }
+                    selfWrapper.Lines[selfWrapper.Lines.Count - 1] = Dialog.Clean(DialogId.Text.PreparingFiles);
+                    if (total != 0) {
+                        float percent = 100f * current / total;
+                        selfWrapper.Lines[selfWrapper.Lines.Count - 1] += $" ({percent:F0}%)";
                     }
                 });
             });
@@ -217,17 +225,21 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             cursor.Emit(OpCodes.Ldarg, p_ModUpdateInfo);
             cursor.Emit(OpCodes.Ldarg, p_TextMenu_Button);
             cursor.EmitDelegate<Action<ModUpdateInfo, TextMenu.Button>>((modUpdateInfo, button) => {
-                PrepareFile(modUpdateInfo, timeout => {
+                PrepareFile(modUpdateInfo, (current, total, timeout) => {
                     if (timeout) {
                         button.Label = $"{ModUpdaterHelper.FormatModName(modUpdateInfo.Name)} ({Dialog.Clean(DialogId.Text.WaitTimeout)})";
-                    } else {
-                        button.Label = $"{ModUpdaterHelper.FormatModName(modUpdateInfo.Name)} ({Dialog.Clean(DialogId.Text.PreparingFiles)})";
+                        return;
+                    }
+                    button.Label = $"{ModUpdaterHelper.FormatModName(modUpdateInfo.Name)} ({Dialog.Clean(DialogId.Text.PreparingFiles)})";
+                    if (total != 0) {
+                        float percent = 100f * current / total;
+                        button.Label = $"{ModUpdaterHelper.FormatModName(modUpdateInfo.Name)} ({Dialog.Clean(DialogId.Text.PreparingFiles)} {percent:F0}%)";
                     }
                 });
             });
         }
 
-        public delegate void PrepareFileProgressCallback(bool timeout);
+        public delegate void PrepareFileProgressCallback(long current, long total, bool timeout);
 
         private static void PrepareFile(ModUpdateInfo modUpdateInfo, PrepareFileProgressCallback progressCallback) {
             if (modUpdateInfo is not ModUpdateInfoExtended info) {
@@ -248,16 +260,16 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                 }
                 long current = progress.DownloadProgress.Current + progress.UploadProgress.Current;
                 long total = progress.DownloadProgress.Total + progress.UploadProgress.Total;
+                progressCallback(current, total, false);
                 if (total != 0 && current == total) {
                     break;
                 }
                 LogUtil.Log($"{fileName} - waiting for server preparing files ({(DateTime.Now - startTime).TotalSeconds:F2}s)", LogLevel.Info);
                 if (DateTime.Now - startTime >= TimeSpan.FromMinutes(1)) {
                     LogUtil.Log($"{fileName} - waiting for server preparing files timeout", LogLevel.Warn);
-                    progressCallback(true);
+                    progressCallback(current, total, true);
                     throw new TimeoutException("Waiting for server preparing files timeout");
                 }
-                progressCallback(false);
                 Thread.Sleep(2000);
             }
             LogUtil.Log($"{fileName} - start downloading", LogLevel.Info);
