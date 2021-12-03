@@ -86,27 +86,19 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             ILCursor cursor = new ILCursor(il);
 
             /*
-                // Logger.Log("AutoModUpdater", "Downloading " + current.URL + " to " + text);
-                IL_00b4: ldstr     "AutoModUpdater"
-                IL_00b9: ldstr     "Downloading "
-                IL_00be: ldloc.s   5
-                IL_00c0: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
-                IL_00c5: ldstr     " to "
-                IL_00ca: ldloc.1
-                IL_00cb: call      string [mscorlib]System.String::Concat(string, string, string, string)
-                IL_00d0: call      void Celeste.Mod.Logger::Log(string, string)
+				// Everest.Updater.DownloadFileWithProgress(current.URL, text, progressCallback);
+				IL_00e4: ldloc.s 5
+				IL_00e6: callvirt instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+				IL_00eb: ldloc.1
+				IL_00ec: ldloc.s 7
+				IL_00ee: call void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
-            cursor.GotoNext(MoveType.After,
-                instr => instr.MatchLdstr("AutoModUpdater"),
-                instr => instr.MatchLdstr("Downloading "),
-                instr => true,
-                instr => instr.OpCode == OpCodes.Callvirt &&
-                    (instr.Operand as MethodReference).GetID() == "System.String Celeste.Mod.Helpers.ModUpdateInfo::get_URL()",
-                instr => instr.MatchLdstr(" to "),
-                instr => true,
-                instr => instr.MatchCall("System.String", "Concat"),
-                instr => instr.OpCode == OpCodes.Call &&
-                    (instr.Operand as MethodReference).GetID() == "System.Void Celeste.Mod.Logger::Log(System.String,System.String)");
+            cursor.GotoNext(MoveType.Before,
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchCallvirt("Celeste.Mod.Helpers.ModUpdateInfo", "get_URL"),
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchCall("Celeste.Mod.Everest/Updater", "DownloadFileWithProgress"));
 
             VariableReference var_ModUpdateInfo = il.Body.Variables
                 .First(var => var.VariableType.FullName == "Celeste.Mod.Helpers.ModUpdateInfo");
@@ -122,7 +114,9 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                 }
             }
 
+            Instruction oldTryStart = cursor.Next;
             cursor.Emit(OpCodes.Ldarg_0);
+            Instruction newTryStart = cursor.Prev;
             cursor.Emit(OpCodes.Ldloc, var_ModUpdateInfo);
             cursor.Emit(OpCodes.Ldloc, var_progressString_DisplayClass);
             cursor.Emit(OpCodes.Ldfld, f_progressString);
@@ -141,6 +135,13 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                     }
                 });
             });
+
+            // MoveAfterLabels doesn't work for exception handlers, manually move them instead
+            foreach (ExceptionHandler handler in il.Body.ExceptionHandlers) {
+                if (handler.TryStart == oldTryStart) {
+                    handler.TryStart = newTryStart;
+                }
+            }
         }
 
         /// <summary>
@@ -151,23 +152,26 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             ILCursor cursor = new ILCursor(il);
 
             /*
-                // LogLine("", logToLogger: false);
-                IL_0033: ldarg.0
-                IL_0034: ldstr     ""
-                IL_0039: ldc.i4.0
-                IL_003a: call      instance void Celeste.Mod.UI.OuiLoggedProgress::LogLine(string, bool) 
+			    // Everest.Updater.DownloadFileWithProgress(mod.URL, text, progressCallback);
+			    IL_004c: ldarg.1
+			    IL_004d: callvirt instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+			    IL_0052: ldloc.0
+			    IL_0053: ldloc.1
+			    IL_0054: call void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
-            cursor.GotoNext(MoveType.After,
-                instr => instr.MatchLdarg(0),
-                instr => instr.MatchLdstr(""),
-                instr => instr.MatchLdcI4(0),
-                instr => instr.OpCode == OpCodes.Call &&
-                    (instr.Operand as MethodReference).GetID() == "System.Void Celeste.Mod.UI.OuiLoggedProgress::LogLine(System.String,System.Boolean)");
+            cursor.GotoNext(MoveType.Before,
+                instr => instr.MatchLdarg(out int _),
+                instr => instr.MatchCallvirt("Celeste.Mod.Helpers.ModUpdateInfo", "get_URL"),
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchCall("Celeste.Mod.Everest/Updater", "DownloadFileWithProgress"));
 
             ParameterReference p_ModUpdateInfo = il.Method.Parameters
                 .First(param => param.ParameterType.FullName == "Celeste.Mod.Helpers.ModUpdateInfo");
 
+            Instruction oldTryStart = cursor.Next;
             cursor.Emit(OpCodes.Ldarg_0);
+            Instruction newTryStart = cursor.Prev;
             cursor.Emit(OpCodes.Ldarg, p_ModUpdateInfo);
             cursor.EmitDelegate<Action<object, ModUpdateInfo>>((self, modUpdateInfo) => {
                 DDW_OuiDependencyDownloader selfWrapper = new DDW_OuiDependencyDownloader(self);
@@ -184,6 +188,13 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                     }
                 });
             });
+
+            // MoveAfterLabels doesn't work for exception handlers, manually move them instead
+            foreach (ExceptionHandler handler in il.Body.ExceptionHandlers) {
+                if (handler.TryStart == oldTryStart) {
+                    handler.TryStart = newTryStart;
+                }
+            }
         }
 
         /// <summary>
@@ -194,36 +205,30 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             ILCursor cursor = new ILCursor(il);
 
             /*
-                // Logger.Log("OuiModUpdateList", "Downloading " + <>c__DisplayClass20_.update.URL + " to " + zipPath);
-                IL_0014: ldstr     "OuiModUpdateList"
-                IL_0019: ldstr     "Downloading "
-                IL_001e: ldloc.0
-                IL_001f: ldfld     class Celeste.Mod.Helpers.ModUpdateInfo Celeste.Mod.UI.OuiModUpdateList/'<>c__DisplayClass20_0'::update
-                IL_0024: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
-                IL_0029: ldstr     " to "
-                IL_002e: ldarg.2
-                IL_002f: call      string [mscorlib]System.String::Concat(string, string, string, string)
-                IL_0034: call      void Celeste.Mod.Logger::Log(string, string)
+		        // Everest.Updater.DownloadFileWithProgress(update.URL, zipPath, progressCallback);
+		        IL_0046: ldloc.0
+		        IL_0047: ldfld class Celeste.Mod.Helpers.ModUpdateInfo Celeste.Mod.UI.OuiModUpdateList/'<>c__DisplayClass20_0'::update
+		        IL_004c: callvirt instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+		        IL_0051: ldarg.2
+		        IL_0052: ldloc.1
+		        IL_0053: call void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
-            cursor.GotoNext(MoveType.After,
-                instr => instr.MatchLdstr("OuiModUpdateList"),
-                instr => instr.MatchLdstr("Downloading "),
-                instr => true,
-                instr => true,
-                instr => instr.OpCode == OpCodes.Callvirt &&
-                    (instr.Operand as MethodReference).GetID() == "System.String Celeste.Mod.Helpers.ModUpdateInfo::get_URL()",
-                instr => instr.MatchLdstr(" to "),
-                instr => true,
-                instr => instr.MatchCall("System.String", "Concat"),
-                instr => instr.OpCode == OpCodes.Call &&
-                    (instr.Operand as MethodReference).GetID() == "System.Void Celeste.Mod.Logger::Log(System.String,System.String)");
+            cursor.GotoNext(MoveType.Before,
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchLdfld(out FieldReference f) && f is {FieldType: {FullName: "Celeste.Mod.Helpers.ModUpdateInfo"}, Name: "update"},
+                instr => instr.MatchCallvirt("Celeste.Mod.Helpers.ModUpdateInfo", "get_URL"),
+                instr => instr.MatchLdarg(out int _),
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchCall("Celeste.Mod.Everest/Updater", "DownloadFileWithProgress"));
 
             ParameterReference p_ModUpdateInfo = il.Method.Parameters
                 .First(param => param.ParameterType.FullName == "Celeste.Mod.Helpers.ModUpdateInfo");
             ParameterReference p_TextMenu_Button = il.Method.Parameters
                 .First(param => param.ParameterType.FullName == "Celeste.TextMenu/Button");
 
+            Instruction oldTryStart = cursor.Next;
             cursor.Emit(OpCodes.Ldarg, p_ModUpdateInfo);
+            Instruction newTryStart = cursor.Prev;
             cursor.Emit(OpCodes.Ldarg, p_TextMenu_Button);
             cursor.EmitDelegate<Action<ModUpdateInfo, TextMenu.Button>>((modUpdateInfo, button) => {
                 PrepareFile(modUpdateInfo, (current, total, timeout) => {
@@ -238,6 +243,13 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                     }
                 });
             });
+
+            // MoveAfterLabels doesn't work for exception handlers, manually move them instead
+            foreach (ExceptionHandler handler in il.Body.ExceptionHandlers) {
+                if (handler.TryStart == oldTryStart) {
+                    handler.TryStart = newTryStart;
+                }
+            }
         }
 
         public delegate void PrepareFileProgressCallback(long current, long total, bool timeout);
