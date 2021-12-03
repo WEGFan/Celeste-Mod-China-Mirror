@@ -24,7 +24,9 @@ namespace Celeste.Mod.ChinaMirror.Endpoints {
         public static RestClient DefaultClient {
             get {
                 RestClient client = new RestClient {
-                    UserAgent = $"ChinaMirror/{ChinaMirrorModule.Instance.Metadata.VersionString}",
+                    UserAgent = $"ChinaMirror/{ChinaMirrorModule.Instance.Metadata.VersionString} " +
+                        $"Celeste/{Celeste.Instance.Version}-{(Everest.Flags.IsFNA ? "fna" : "xna")} " +
+                        $"Everest/{Everest.VersionString}",
                     Encoding = UTF8NoBOM
                 };
                 client.UseNewtonsoftJson(new JsonSerializerSettings {
