@@ -1,4 +1,4 @@
-This folder contains necessary files from game (`Celeste 1.4.0.0 [Everest: 2803-azure-0bc2a]`) to compile this project. 
+This folder contains necessary files from game (`Celeste 1.4.0.0 [Everest: 3070-azure-d793d]`) to compile this project. 
 
 The files in `stripped` folder are stripped game libs that only have method declarations, for being able to compile without having the game installed and preventing uploading actual files to the repo. These are made with [mono-cil-strip](https://github.com/mono/mono/tree/master/mcs/tools/cil-strip).
 
