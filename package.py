@@ -24,7 +24,7 @@ with open('./CelesteModChinaMirror.csproj', 'r+', encoding='utf-8') as f:
     f.truncate()
 
     s = re.sub(r'^(\s+<AssemblyVersion>)(.*?)(</AssemblyVersion>)$',
-               f'\\g<1>{mod_version}.0\\g<3>',
+               f'\\g<1>{mod_version.split("-")[0]}.0\\g<3>',
                s, flags=re.MULTILINE)
 
     f.write(s)
