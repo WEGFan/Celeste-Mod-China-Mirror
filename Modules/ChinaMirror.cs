@@ -32,13 +32,10 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate -= IL_AutoModUpdater_autoUpdate;
         }
 
-        /// <summary>
-        /// Patch <see cref="Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl"/>.
-        /// Change the <c>modupdater.txt</c> url to mirror server.
-        /// </summary>
         private static void IL_ModUpdaterHelper_getModUpdaterDatabaseUrl(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
+            // add user agent to web client
             /*
                 // using (WebClient webClient = new WebClient())
                 IL_0000: newobj   instance void [System]System.Net.WebClient::.ctor()
@@ -52,18 +49,16 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                 return webClient;
             });
 
+            // change the modupdater.txt url to mirror server
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdstr("https://everestapi.github.io/modupdater.txt"));
             cursor.Next.Operand = new Uri(ServerApi.Host, "/api/v1/file/modupdater.txt").ToString();
         }
 
-        /// <summary>
-        /// Patch <see cref="Helpers.ModUpdaterHelper.DownloadModUpdateList"/>.
-        /// Deserialize yaml to <see cref="ModUpdateInfoExtended"/> instead to add additional fields.
-        /// </summary>
         private static void IL_ModUpdaterHelper_DownloadModUpdateList(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
+            // add user agent to web client
             /*
                 // using (WebClient webClient = new WebClient())
                 IL_001d: newobj   instance void [System]System.Net.WebClient::.ctor()
@@ -77,6 +72,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                 return webClient;
             });
 
+            // deserialize yaml to ModUpdateInfoExtended instead to add additional fields
             /*
                 // string input = webClient.DownloadString(modUpdaterDatabaseUrl);
                 IL_0023: ldloc.2
@@ -106,13 +102,10 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             });
         }
 
-        /// <summary>
-        /// Patch <see cref="AutoModUpdater.autoUpdate"/>.
-        /// Add "server is preparing files" before download starts.
-        /// </summary>
         private static void IL_AutoModUpdater_autoUpdate(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
+            // add "server is preparing files" before download starts
             /*
 				// Everest.Updater.DownloadFileWithProgress(current.URL, text, progressCallback);
 				IL_00e4: ldloc.s   5
@@ -172,13 +165,10 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             }
         }
 
-        /// <summary>
-        /// Patch <see cref="OuiDependencyDownloader.downloadDependency"/>
-        /// Add "server is preparing files" before download starts.
-        /// </summary>
         private static void IL_OuiDependencyDownloader_downloadDependency(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
+            // add "server is preparing files" before download starts
             /*
 			    // Everest.Updater.DownloadFileWithProgress(mod.URL, text, progressCallback);
 			    IL_004c: ldarg.1
@@ -225,13 +215,10 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             }
         }
 
-        /// <summary>
-        /// Patch <see cref="OuiModUpdateList.downloadMod"/>.
-        /// Add "server is preparing files" before download starts.
-        /// </summary>
         private static void IL_OuiModUpdateList_downloadMod(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
+            // add "server is preparing files" before download starts
             /*
 		        // Everest.Updater.DownloadFileWithProgress(update.URL, zipPath, progressCallback);
 		        IL_0046: ldloc.0
