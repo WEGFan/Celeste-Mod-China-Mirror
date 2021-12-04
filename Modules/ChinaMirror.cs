@@ -16,26 +16,26 @@ namespace Celeste.Mod.ChinaMirror.Modules {
     public static class ChinaMirror {
 
         public static void Load() {
-            IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl += patch_ModUpdaterHelper_getModUpdaterDatabaseUrl;
-            IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList += patch_ModUpdaterHelper_DownloadModUpdateList;
-            IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod += patch_OuiModUpdateList_downloadMod;
-            IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency += patch_OuiDependencyDownloader_downloadDependency;
-            IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate += patch_AutoModUpdater_autoUpdate;
+            IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl += IL_ModUpdaterHelper_getModUpdaterDatabaseUrl;
+            IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList += IL_ModUpdaterHelper_DownloadModUpdateList;
+            IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod += IL_OuiModUpdateList_downloadMod;
+            IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency += IL_OuiDependencyDownloader_downloadDependency;
+            IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate += IL_AutoModUpdater_autoUpdate;
         }
 
         public static void Unload() {
-            IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl -= patch_ModUpdaterHelper_getModUpdaterDatabaseUrl;
-            IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList -= patch_ModUpdaterHelper_DownloadModUpdateList;
-            IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod -= patch_OuiModUpdateList_downloadMod;
-            IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency -= patch_OuiDependencyDownloader_downloadDependency;
-            IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate -= patch_AutoModUpdater_autoUpdate;
+            IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl -= IL_ModUpdaterHelper_getModUpdaterDatabaseUrl;
+            IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList -= IL_ModUpdaterHelper_DownloadModUpdateList;
+            IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod -= IL_OuiModUpdateList_downloadMod;
+            IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency -= IL_OuiDependencyDownloader_downloadDependency;
+            IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate -= IL_AutoModUpdater_autoUpdate;
         }
 
         /// <summary>
         /// Patch <see cref="Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl"/>.
         /// Change the <c>modupdater.txt</c> url to mirror server.
         /// </summary>
-        private static void patch_ModUpdaterHelper_getModUpdaterDatabaseUrl(ILContext il) {
+        private static void IL_ModUpdaterHelper_getModUpdaterDatabaseUrl(ILContext il) {
             ILCursor cursor = new ILCursor(il);
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdstr("https://everestapi.github.io/modupdater.txt"));
@@ -46,7 +46,7 @@ namespace Celeste.Mod.ChinaMirror.Modules {
         /// Patch <see cref="Helpers.ModUpdaterHelper.DownloadModUpdateList"/>.
         /// Deserialize yaml to <see cref="ModUpdateInfoExtended"/> instead to add additional fields.
         /// </summary>
-        private static void patch_ModUpdaterHelper_DownloadModUpdateList(ILContext il) {
+        private static void IL_ModUpdaterHelper_DownloadModUpdateList(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
             /*
@@ -82,16 +82,16 @@ namespace Celeste.Mod.ChinaMirror.Modules {
         /// Patch <see cref="AutoModUpdater.autoUpdate"/>.
         /// Add "server is preparing files" before download starts.
         /// </summary>
-        private static void patch_AutoModUpdater_autoUpdate(ILContext il) {
+        private static void IL_AutoModUpdater_autoUpdate(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
             /*
 				// Everest.Updater.DownloadFileWithProgress(current.URL, text, progressCallback);
-				IL_00e4: ldloc.s 5
-				IL_00e6: callvirt instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+				IL_00e4: ldloc.s   5
+				IL_00e6: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
 				IL_00eb: ldloc.1
-				IL_00ec: ldloc.s 7
-				IL_00ee: call void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
+				IL_00ec: ldloc.s   7
+				IL_00ee: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdloc(out int _),
@@ -145,19 +145,19 @@ namespace Celeste.Mod.ChinaMirror.Modules {
         }
 
         /// <summary>
-        /// Patch <see cref="OuiDependencyDownloader.downloadDependency"/>.
+        /// Patch <see cref="OuiDependencyDownloader.downloadDependency"/>
         /// Add "server is preparing files" before download starts.
         /// </summary>
-        private static void patch_OuiDependencyDownloader_downloadDependency(ILContext il) {
+        private static void IL_OuiDependencyDownloader_downloadDependency(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
             /*
 			    // Everest.Updater.DownloadFileWithProgress(mod.URL, text, progressCallback);
 			    IL_004c: ldarg.1
-			    IL_004d: callvirt instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+			    IL_004d: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
 			    IL_0052: ldloc.0
 			    IL_0053: ldloc.1
-			    IL_0054: call void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
+			    IL_0054: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdarg(out int _),
@@ -201,17 +201,17 @@ namespace Celeste.Mod.ChinaMirror.Modules {
         /// Patch <see cref="OuiModUpdateList.downloadMod"/>.
         /// Add "server is preparing files" before download starts.
         /// </summary>
-        private static void patch_OuiModUpdateList_downloadMod(ILContext il) {
+        private static void IL_OuiModUpdateList_downloadMod(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
             /*
 		        // Everest.Updater.DownloadFileWithProgress(update.URL, zipPath, progressCallback);
 		        IL_0046: ldloc.0
-		        IL_0047: ldfld class Celeste.Mod.Helpers.ModUpdateInfo Celeste.Mod.UI.OuiModUpdateList/'<>c__DisplayClass20_0'::update
-		        IL_004c: callvirt instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+		        IL_0047: ldfld     class Celeste.Mod.Helpers.ModUpdateInfo Celeste.Mod.UI.OuiModUpdateList/'<>c__DisplayClass20_0'::update
+		        IL_004c: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
 		        IL_0051: ldarg.2
 		        IL_0052: ldloc.1
-		        IL_0053: call void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
+		        IL_0053: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdloc(out int _),
