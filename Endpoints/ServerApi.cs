@@ -38,10 +38,10 @@ namespace Celeste.Mod.ChinaMirror.Endpoints {
             }
         }
 
-        public static IRestResponse<Response<FilePrepareStatus>> GetMirrorStatus(MirrorFileType type, string fileName) {
+        public static IRestResponse<Response<FilePrepareStatus>> GetMirrorStatus(string type, string fileName) {
             Uri url = new Uri(Host, "/api/v1/mirror/status");
             IRestRequest request = new RestRequest(url, Method.GET)
-                .AddQueryParameter("type", type.Tag)
+                .AddQueryParameter("type", type)
                 .AddQueryParameter("fileName", fileName);
 
             RestClient client = DefaultClient;
@@ -50,10 +50,10 @@ namespace Celeste.Mod.ChinaMirror.Endpoints {
             return response;
         }
 
-        public static IRestResponse<Response<object>> StartDownload(MirrorFileType type, string fileName) {
+        public static IRestResponse<Response<object>> StartDownload(string type, string fileName) {
             Uri url = new Uri(Host, "/api/v1/mirror/start-download");
             IRestRequest request = new RestRequest(url, Method.POST)
-                .AddQueryParameter("type", type.Tag)
+                .AddQueryParameter("type", type)
                 .AddQueryParameter("fileName", fileName);
 
             RestClient client = DefaultClient;

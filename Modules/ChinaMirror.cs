@@ -276,13 +276,13 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             }
             string fileName = info.MirrorFileName;
             LogUtil.Log($"{fileName} - started downloading on server", LogLevel.Info);
-            ServerApi.StartDownload(MirrorFileType.Mod, fileName);
+            ServerApi.StartDownload(info.MirrorType, fileName);
 
             DateTime startTime = DateTime.Now;
             DateTime previousCurrentTime = DateTime.Now;
             long previousCurrent = 0;
             while (true) {
-                IRestResponse<Response<FilePrepareStatus>> statusResponse = ServerApi.GetMirrorStatus(MirrorFileType.Mod, fileName);
+                IRestResponse<Response<FilePrepareStatus>> statusResponse = ServerApi.GetMirrorStatus(info.MirrorType, fileName);
                 FilePrepareStatus progress = statusResponse.Data.Data;
                 if (progress.UploadProgress.Current > 0) {
                     // assume download is completed if the upload is started

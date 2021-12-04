@@ -14,6 +14,7 @@ namespace Celeste.Mod.ChinaMirror.Endpoints {
     public record MirrorFileType {
 
         public static readonly MirrorFileType Mod = new MirrorFileType("mod");
+        public static readonly MirrorFileType ExclusiveMod = new MirrorFileType("exclusiveMod");
         public static readonly MirrorFileType Everest = new MirrorFileType("everest");
 
         public string Tag { get; }
