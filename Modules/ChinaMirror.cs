@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using Celeste.Mod.ChinaMirror.Endpoints;
 using Celeste.Mod.ChinaMirror.Utils;
@@ -37,6 +38,20 @@ namespace Celeste.Mod.ChinaMirror.Modules {
         /// </summary>
         private static void IL_ModUpdaterHelper_getModUpdaterDatabaseUrl(ILContext il) {
             ILCursor cursor = new ILCursor(il);
+
+            /*
+                // using (WebClient webClient = new WebClient())
+                IL_0000: newobj   instance void [System]System.Net.WebClient::.ctor()
+                IL_0005: stloc.0
+            */
+            cursor.GotoNext(MoveType.After,
+                instr => instr.MatchNewobj(out MethodReference m) &&
+                    typeof(WebClient).IsAssignableFrom(m.DeclaringType.ResolveReflection()));
+            cursor.EmitDelegate<Func<WebClient, WebClient>>(webClient => {
+                webClient.Headers["User-Agent"] = ServerApi.DefaultUserAgent;
+                return webClient;
+            });
+
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdstr("https://everestapi.github.io/modupdater.txt"));
             cursor.Next.Operand = new Uri(ServerApi.Host, "/api/v1/file/modupdater.txt").ToString();
@@ -48,6 +63,19 @@ namespace Celeste.Mod.ChinaMirror.Modules {
         /// </summary>
         private static void IL_ModUpdaterHelper_DownloadModUpdateList(ILContext il) {
             ILCursor cursor = new ILCursor(il);
+
+            /*
+                // using (WebClient webClient = new WebClient())
+                IL_001d: newobj   instance void [System]System.Net.WebClient::.ctor()
+                IL_0022: stloc.2
+            */
+            cursor.GotoNext(MoveType.After,
+                instr => instr.MatchNewobj(out MethodReference m) &&
+                    typeof(WebClient).IsAssignableFrom(m.DeclaringType.ResolveReflection()));
+            cursor.EmitDelegate<Func<WebClient, WebClient>>(webClient => {
+                webClient.Headers["User-Agent"] = ServerApi.DefaultUserAgent;
+                return webClient;
+            });
 
             /*
                 // string input = webClient.DownloadString(modUpdaterDatabaseUrl);

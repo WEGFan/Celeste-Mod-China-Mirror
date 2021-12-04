@@ -21,12 +21,14 @@ namespace Celeste.Mod.ChinaMirror.Endpoints {
             new Uri("https://celeste.weg.fan/");
 #endif
 
+        public static string DefaultUserAgent => $"ChinaMirror/{ChinaMirrorModule.Instance.Metadata.VersionString} " +
+            $"Celeste/{Celeste.Instance.Version}-{(Everest.Flags.IsFNA ? "fna" : "xna")} " +
+            $"Everest/{Everest.VersionString}";
+
         public static RestClient DefaultClient {
             get {
                 RestClient client = new RestClient {
-                    UserAgent = $"ChinaMirror/{ChinaMirrorModule.Instance.Metadata.VersionString} " +
-                        $"Celeste/{Celeste.Instance.Version}-{(Everest.Flags.IsFNA ? "fna" : "xna")} " +
-                        $"Everest/{Everest.VersionString}",
+                    UserAgent = DefaultUserAgent,
                     Encoding = UTF8NoBOM
                 };
                 client.UseNewtonsoftJson(new JsonSerializerSettings {
