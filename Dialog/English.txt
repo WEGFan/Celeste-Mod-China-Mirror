@@ -1,4 +1,5 @@
 ChinaMirror_mod_name=Celeste Mod China Mirror
+modname_ChinaMirror={+ChinaMirror_mod_name}
 
 ChinaMirror_options_Enabled=Enabled
 

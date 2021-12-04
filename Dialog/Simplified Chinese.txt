@@ -1,4 +1,5 @@
 ChinaMirror_mod_name=蔚蓝 Mod 中国镜像
+modname_ChinaMirror={+ChinaMirror_mod_name}
 
 ChinaMirror_options_Enabled=开关
 
