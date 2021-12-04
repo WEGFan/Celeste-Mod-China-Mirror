@@ -58,8 +58,6 @@
         <PackageReference Include="YamlDotNet" Version="8.1.2" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="Jdenticon-net" Version="2.2.1" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="KeraLua" Version="1.0.22" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="NLua" Version="1.4.25" PrivateAssets="all" ExcludeAssets="runtime" />
     </ItemGroup>
 
     <!-- Custom libs -->
