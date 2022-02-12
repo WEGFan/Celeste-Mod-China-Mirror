@@ -107,12 +107,12 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
             // add "server is preparing files" before download starts
             /*
-				// Everest.Updater.DownloadFileWithProgress(current.URL, text, progressCallback);
-				IL_00e4: ldloc.s   5
-				IL_00e6: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
-				IL_00eb: ldloc.1
-				IL_00ec: ldloc.s   7
-				IL_00ee: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
+                // Everest.Updater.DownloadFileWithProgress(current.URL, text, progressCallback);
+                IL_00e4: ldloc.s   5
+                IL_00e6: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+                IL_00eb: ldloc.1
+                IL_00ec: ldloc.s   7
+                IL_00ee: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdloc(out int _),
@@ -170,12 +170,12 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
             // add "server is preparing files" before download starts
             /*
-			    // Everest.Updater.DownloadFileWithProgress(mod.URL, text, progressCallback);
-			    IL_004c: ldarg.1
-			    IL_004d: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
-			    IL_0052: ldloc.0
-			    IL_0053: ldloc.1
-			    IL_0054: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
+                // Everest.Updater.DownloadFileWithProgress(mod.URL, text, progressCallback);
+                IL_004c: ldarg.1
+                IL_004d: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+                IL_0052: ldloc.0
+                IL_0053: ldloc.1
+                IL_0054: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdarg(out int _),
@@ -220,13 +220,13 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
             // add "server is preparing files" before download starts
             /*
-		        // Everest.Updater.DownloadFileWithProgress(update.URL, zipPath, progressCallback);
-		        IL_0046: ldloc.0
-		        IL_0047: ldfld     class Celeste.Mod.Helpers.ModUpdateInfo Celeste.Mod.UI.OuiModUpdateList/'<>c__DisplayClass20_0'::update
-		        IL_004c: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
-		        IL_0051: ldarg.2
-		        IL_0052: ldloc.1
-		        IL_0053: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
+                // Everest.Updater.DownloadFileWithProgress(update.URL, zipPath, progressCallback);
+                IL_0046: ldloc.0
+                IL_0047: ldfld     class Celeste.Mod.Helpers.ModUpdateInfo Celeste.Mod.UI.OuiModUpdateList/'<>c__DisplayClass20_0'::update
+                IL_004c: callvirt  instance string Celeste.Mod.Helpers.ModUpdateInfo::get_URL()
+                IL_0051: ldarg.2
+                IL_0052: ldloc.1
+                IL_0053: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [mscorlib]System.Func`4<int32, int64, int32, bool>)
             */
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdloc(out int _),
