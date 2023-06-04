@@ -10,26 +10,42 @@ using Celeste.Mod.UI;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
 using RestSharp;
 
 namespace Celeste.Mod.ChinaMirror.Modules {
     public static class ChinaMirror {
 
+        private static readonly List<IDetour> hooks = new List<IDetour>();
+
         public static void Load() {
-            IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl += IL_ModUpdaterHelper_getModUpdaterDatabaseUrl;
-            IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList += IL_ModUpdaterHelper_DownloadModUpdateList;
-            IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod += IL_OuiModUpdateList_downloadMod;
-            IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency += IL_OuiDependencyDownloader_downloadDependency;
-            IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate += IL_AutoModUpdater_autoUpdate;
+            // undo hooks when exception occurs, so we need to manually apply hooks
+            ILHookConfig ilHookConfig = new ILHookConfig {ManualApply = true};
+            try {
+                hooks.Add(new ILHook(typeof(ModUpdaterHelper).FindMethod("getModUpdaterDatabaseUrl"),
+                    IL_ModUpdaterHelper_getModUpdaterDatabaseUrl, ilHookConfig));
+                hooks.Add(new ILHook(typeof(ModUpdaterHelper).FindMethod("DownloadModUpdateList"),
+                    IL_ModUpdaterHelper_DownloadModUpdateList, ilHookConfig));
+                hooks.Add(new ILHook(Type.GetType("Celeste.Mod.UI.OuiModUpdateList, Celeste").FindMethod("downloadMod"),
+                    IL_OuiModUpdateList_downloadMod, ilHookConfig));
+                hooks.Add(new ILHook(Type.GetType("Celeste.Mod.UI.OuiDependencyDownloader, Celeste").FindMethod("downloadDependency"),
+                    IL_OuiDependencyDownloader_downloadDependency, ilHookConfig));
+                hooks.Add(new ILHook(Type.GetType("Celeste.Mod.UI.AutoModUpdater, Celeste").FindMethod("autoUpdate"),
+                    IL_AutoModUpdater_autoUpdate, ilHookConfig));
+
+                hooks.ForEach(hook => hook.Apply());
+            } catch (Exception e) {
+                LogUtil.Log("failed to hook", LogLevel.Error);
+                Logger.LogDetailed(e);
+
+                Unload();
+            }
         }
 
         public static void Unload() {
-            IL.Celeste.Mod.Helpers.ModUpdaterHelper.getModUpdaterDatabaseUrl -= IL_ModUpdaterHelper_getModUpdaterDatabaseUrl;
-            IL.Celeste.Mod.Helpers.ModUpdaterHelper.DownloadModUpdateList -= IL_ModUpdaterHelper_DownloadModUpdateList;
-            IL.Celeste.Mod.UI.OuiModUpdateList.downloadMod -= IL_OuiModUpdateList_downloadMod;
-            IL.Celeste.Mod.UI.OuiDependencyDownloader.downloadDependency -= IL_OuiDependencyDownloader_downloadDependency;
-            IL.Celeste.Mod.UI.AutoModUpdater.autoUpdate -= IL_AutoModUpdater_autoUpdate;
+            hooks.ForEach(hook => hook?.Dispose());
+            hooks.Clear();
         }
 
         private static void IL_ModUpdaterHelper_getModUpdaterDatabaseUrl(ILContext il) {
