@@ -51,8 +51,11 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
             // change the modupdater.txt url to mirror server
             cursor.GotoNext(MoveType.Before,
-                instr => instr.MatchLdstr("https://everestapi.github.io/modupdater.txt"));
-            cursor.Next.Operand = new Uri(ServerApi.Host, "/api/v1/file/modupdater.txt").ToString();
+                instr => instr.MatchLdstr(out string str) && str.Contains("https://everestapi.github.io/"));
+
+            string newUrl = ((string)cursor.Next.Operand)
+                .Let(it => it.Replace("https://everestapi.github.io/", new Uri(ServerApi.Host, "/api/v1/file/").ToString()));
+            cursor.Next.Operand = newUrl;
         }
 
         private static void IL_ModUpdaterHelper_DownloadModUpdateList(ILContext il) {
