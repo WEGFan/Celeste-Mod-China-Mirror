@@ -12,7 +12,6 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 using MonoMod.Utils;
-using RestSharp;
 
 namespace Celeste.Mod.ChinaMirror.Modules {
     public static class ChinaMirror {
@@ -273,8 +272,8 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             DateTime previousCurrentTime = DateTime.Now;
             long previousCurrent = 0;
             while (true) {
-                IRestResponse<Response<FilePrepareStatus>> statusResponse = ServerApi.GetMirrorStatus(info.MirrorType, fileName);
-                FilePrepareStatus progress = statusResponse.Data.Data;
+                Response<FilePrepareStatus> statusResponse = ServerApi.GetMirrorStatus(info.MirrorType, fileName);
+                FilePrepareStatus progress = statusResponse.Data;
                 if (progress.UploadProgress.Current > 0) {
                     // assume download is completed if the upload is started
                     progress.DownloadProgress.Current = progress.DownloadProgress.Total;
