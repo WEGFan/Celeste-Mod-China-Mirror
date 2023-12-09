@@ -51,20 +51,6 @@ namespace Celeste.Mod.ChinaMirror.Modules {
         private static void IL_ModUpdaterHelper_getModUpdaterDatabaseUrl(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
-            // add user agent to web client
-            /*
-                // using (WebClient webClient = new WebClient())
-                IL_0000: newobj   instance void [System]System.Net.WebClient::.ctor()
-                IL_0005: stloc.0
-            */
-            cursor.GotoNext(MoveType.After,
-                instr => instr.MatchNewobj(out MethodReference m) &&
-                    typeof(WebClient).IsAssignableFrom(m.DeclaringType.ResolveReflection()));
-            cursor.EmitDelegate<Func<WebClient, WebClient>>(webClient => {
-                webClient.Headers["User-Agent"] = ServerApi.DefaultUserAgent;
-                return webClient;
-            });
-
             // change the modupdater.txt url to mirror server
             cursor.GotoNext(MoveType.Before,
                 instr => instr.MatchLdstr(out string str) && str.Contains("https://everestapi.github.io/"));
@@ -76,20 +62,6 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
         private static void IL_ModUpdaterHelper_DownloadModUpdateList(ILContext il) {
             ILCursor cursor = new ILCursor(il);
-
-            // add user agent to web client
-            /*
-                // using (WebClient webClient = new WebClient())
-                IL_001d: newobj   instance void [System]System.Net.WebClient::.ctor()
-                IL_0022: stloc.2
-            */
-            cursor.GotoNext(MoveType.After,
-                instr => instr.MatchNewobj(out MethodReference m) &&
-                    typeof(WebClient).IsAssignableFrom(m.DeclaringType.ResolveReflection()));
-            cursor.EmitDelegate<Func<WebClient, WebClient>>(webClient => {
-                webClient.Headers["User-Agent"] = ServerApi.DefaultUserAgent;
-                return webClient;
-            });
 
             // deserialize yaml to ModUpdateInfoExtended instead to add additional fields
             /*
