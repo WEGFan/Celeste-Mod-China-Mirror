@@ -32,6 +32,8 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                     IL_OuiDependencyDownloader_downloadDependency, ilHookConfig));
                 hooks.Add(new ILHook(Type.GetType("Celeste.Mod.UI.AutoModUpdater, Celeste").FindMethod("autoUpdate"),
                     IL_AutoModUpdater_autoUpdate, ilHookConfig));
+                hooks.Add(new ILHook(Type.GetType("Celeste.Mod.Everest+Updater, Celeste").FindMethod("DownloadFileWithProgress"),
+                    IL_Updater_DownloadFileWithProgress, ilHookConfig));
 
                 hooks.ForEach(hook => hook.Apply());
             } catch (Exception e) {
@@ -254,6 +256,35 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                 if (handler.TryStart == oldTryStart) {
                     handler.TryStart = newTryStart;
                 }
+            }
+        }
+
+        private static void IL_Updater_DownloadFileWithProgress(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+
+            // .NET Core disallows follow redirection from HTTPS to HTTP automatically, so we need to manually get the redirected URL
+            if (Environment.Version.Major != 4) {
+                cursor.Emit(OpCodes.Ldarga, 0);
+                cursor.EmitDelegate((ref string url) => {
+                    for (int i = 0; i < 10; i++) {
+                        HttpWebRequest request = WebRequest.CreateHttp(url);
+                        request.Method = "HEAD";
+                        HttpWebResponse response;
+                        try {
+                            response = (HttpWebResponse)request.GetResponse();
+                        } catch (WebException e) {
+                            response = (HttpWebResponse)e.Response;
+                        }
+
+                        if (response.StatusCode is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or
+                            HttpStatusCode.SeeOther or HttpStatusCode.TemporaryRedirect
+                        ) {
+                            url = response.Headers[HttpResponseHeader.Location] ?? "";
+                        } else {
+                            break;
+                        }
+                    }
+                });
             }
         }
 
