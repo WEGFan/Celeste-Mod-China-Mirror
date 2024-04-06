@@ -49,15 +49,16 @@
     <!-- Everest libs -->
     <ItemGroup>
         <PackageReference Include="Mono.Cecil" Version="0.11.4" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="MonoMod" Version="21.08.19.01" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="MonoMod.RuntimeDetour" Version="21.08.19.01" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="21.08.19.01" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="MonoMod.Utils" Version="21.08.19.01" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MonoMod" Version="22.01.04.03" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MonoMod.RuntimeDetour" Version="22.01.04.03" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MonoMod.RuntimeDetour.HookGen" Version="22.01.04.03" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MonoMod.Utils" Version="22.01.04.03" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="DotNetZip" Version="1.15.0" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="YamlDotNet" Version="8.1.2" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="Jdenticon-net" Version="2.2.1" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="MAB.DotIgnore" Version="3.0.2" PrivateAssets="all" ExcludeAssets="runtime" />
     </ItemGroup>
 
     <!-- Custom libs -->
