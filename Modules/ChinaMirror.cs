@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Celeste.Mod.ChinaMirror.Endpoints;
 using Celeste.Mod.ChinaMirror.Utils;
@@ -24,6 +26,8 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             try {
                 hooks.Add(new ILHook(typeof(ModUpdaterHelper).FindMethod("getModUpdaterDatabaseUrl"),
                     IL_ModUpdaterHelper_getModUpdaterDatabaseUrl, ilHookConfig));
+                hooks.Add(new ILHook(Type.GetType("Celeste.Mod.Everest+Updater, Celeste").FindMethod("GetEverestUpdaterDatabaseURL"),
+                    IL_Updater_GetEverestUpdaterDatabaseURL, ilHookConfig));
                 hooks.Add(new ILHook(typeof(ModUpdaterHelper).FindMethod("DownloadModUpdateList"),
                     IL_ModUpdaterHelper_DownloadModUpdateList, ilHookConfig));
                 hooks.Add(new ILHook(Type.GetType("Celeste.Mod.UI.OuiModUpdateList, Celeste").FindMethod("downloadMod"),
@@ -34,6 +38,14 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                     IL_AutoModUpdater_autoUpdate, ilHookConfig));
                 hooks.Add(new ILHook(Type.GetType("Celeste.Mod.Everest+Updater, Celeste").FindMethod("DownloadFileWithProgress"),
                     IL_Updater_DownloadFileWithProgress, ilHookConfig));
+
+                MethodInfo doUpdateMethod = Type.GetType("Celeste.Mod.Everest+Updater, Celeste").FindMethod("DoUpdate");
+                if (doUpdateMethod == null) {
+                    // legacy everest
+                    doUpdateMethod = Type.GetType("Celeste.Mod.Everest+Updater, Celeste").FindMethod("_UpdateStart");
+                }
+                hooks.Add(new ILHook(doUpdateMethod,
+                    IL_Updater_DoUpdate, ilHookConfig));
 
                 hooks.ForEach(hook => hook.Apply());
             } catch (Exception e) {
@@ -58,6 +70,18 @@ namespace Celeste.Mod.ChinaMirror.Modules {
 
             string newUrl = ((string)cursor.Next.Operand)
                 .Let(it => it.Replace("https://everestapi.github.io/", new Uri(ServerApi.Host, "/api/v1/file/").ToString()));
+            cursor.Next.Operand = newUrl;
+        }
+
+        private static void IL_Updater_GetEverestUpdaterDatabaseURL(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+
+            // change the everestupdater.txt url to mirror server
+            cursor.GotoNext(MoveType.Before,
+                instr => instr.MatchLdstr(out string str) && str.Contains("https://everestapi.github.io/"));
+
+            string newUrl = ((string)cursor.Next.Operand)
+                .Let(it => it.Replace("https://everestapi.github.io/", new Uri(ServerApi.Host, "/api/v2/download/").ToString()));
             cursor.Next.Operand = newUrl;
         }
 
@@ -285,6 +309,93 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                         }
                     }
                 });
+            }
+        }
+
+        private static void IL_Updater_DoUpdate(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+
+            // add "server is preparing files" before download starts
+            /*
+                // Updater.DownloadFileWithProgress(version.URL, text, delegate(int position, long length, int speed) { ... });
+                IL_00e6: ldarg.1
+                IL_00e7: ldfld     string Celeste.Mod.Everest/Updater/Entry::URL
+                IL_00ec: ldloc.2
+                IL_00ed: ldloc.0
+                IL_00ee: ldftn     instance bool Celeste.Mod.Everest/Updater/'<>c__DisplayClass25_0'::'<DoUpdate>b__0'(int32, int64, int32)
+                IL_00f4: newobj    instance void class [System.Runtime]System.Func`4<int32, int64, int32, bool>::.ctor(object, native int)
+                IL_00f9: call      void Celeste.Mod.Everest/Updater::DownloadFileWithProgress(string, string, class [System.Runtime]System.Func`4<int32, int64, int32, bool>)
+            */
+            cursor.GotoNext(MoveType.Before,
+                instr => instr.MatchLdarg(out int _),
+                instr => instr.MatchLdfld(out FieldReference f) && f is {DeclaringType: {FullName: "Celeste.Mod.Everest/Updater/Entry"}, Name: "URL"},
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchLdloc(out int _),
+                instr => instr.MatchLdftn(out MethodReference _),
+                instr => instr.MatchNewobj(out MethodReference _),
+                instr => instr.MatchCall("Celeste.Mod.Everest/Updater", "DownloadFileWithProgress"));
+
+            Instruction oldTryStart = cursor.Next;
+            cursor.Emit(OpCodes.Ldarg_0);
+            Instruction newTryStart = cursor.Prev;
+            cursor.Emit(OpCodes.Ldarg_1);
+            FieldReference f_URL = il.Method.Parameters[1].ParameterType.SafeResolve().FindField("URL");
+            cursor.Emit(OpCodes.Ldfld, f_URL);
+
+            cursor.EmitDelegate<Action<OuiLoggedProgress, string>>((progress, url) => {
+                // get file id by redirected url
+                HttpWebRequest request = WebRequest.CreateHttp(url);
+                request.AllowAutoRedirect = false;
+                request.Method = "HEAD";
+                HttpWebResponse response;
+                try {
+                    response = (HttpWebResponse)request.GetResponse();
+                } catch (WebException e) {
+                    response = (HttpWebResponse)e.Response;
+                }
+
+                if (response.StatusCode is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or
+                    HttpStatusCode.SeeOther or HttpStatusCode.TemporaryRedirect
+                ) {
+                    url = response.Headers[HttpResponseHeader.Location];
+                }
+
+                LogUtil.Log($"redirected url: {url}", LogLevel.Debug);
+
+                // skip preparing from server if error occurs
+                if (url == null) {
+                    return;
+                }
+
+                Match match = Regex.Match(url, @"/api/v2/download/files/(\d+)");
+                if (!match.Success) {
+                    return;
+                }
+
+                string fileId = match.Groups[1].Value;
+                ModUpdateInfo modUpdateInfo = new ModUpdateInfoExtended {
+                    MirrorType = "",
+                    MirrorFileName = fileId,
+                };
+
+                PrepareFile(modUpdateInfo, (current, total, timeout) => {
+                    if (timeout) {
+                        progress.Lines[progress.Lines.Count - 1] = Dialog.Clean(DialogId.Text.WaitTimeout);
+                        return;
+                    }
+                    progress.Lines[progress.Lines.Count - 1] = Dialog.Clean(DialogId.Text.PreparingFiles);
+                    if (total != 0) {
+                        float percent = 100f * current / total;
+                        progress.Lines[progress.Lines.Count - 1] += $" ({percent:F0}%)";
+                    }
+                });
+            });
+
+            // MoveAfterLabels doesn't work for exception handlers, manually move them instead
+            foreach (ExceptionHandler handler in il.Body.ExceptionHandlers) {
+                if (handler.TryStart == oldTryStart) {
+                    handler.TryStart = newTryStart;
+                }
             }
         }
 
