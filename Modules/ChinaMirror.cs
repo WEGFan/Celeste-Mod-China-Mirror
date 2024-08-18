@@ -18,16 +18,69 @@ using MonoMod.Utils;
 namespace Celeste.Mod.ChinaMirror.Modules {
     public static class ChinaMirror {
 
-        private static readonly List<IDetour> hooks = new List<IDetour>();
+        private static readonly List<IDetour> appliedHooks = new List<IDetour>();
 
         public static void Load() {
+            TryHookGetModUpdateDatabaseUrl();
+            TryHookGetEverestUpdateDatabaseUrl();
+            TryHookServerPreparingFiles();
+        }
+
+        public static void Unload() {
+            appliedHooks.ForEach(hook => hook?.Dispose());
+            appliedHooks.Clear();
+        }
+
+        private static bool TryHookGetModUpdateDatabaseUrl() {
             // undo hooks when exception occurs, so we need to manually apply hooks
             ILHookConfig ilHookConfig = new ILHookConfig {ManualApply = true};
+
+            List<IDetour> hooks = new List<IDetour>();
             try {
                 hooks.Add(new ILHook(typeof(ModUpdaterHelper).FindMethod("getModUpdaterDatabaseUrl"),
                     IL_ModUpdaterHelper_getModUpdaterDatabaseUrl, ilHookConfig));
+
+                hooks.ForEach(hook => hook.Apply());
+
+                appliedHooks.AddRange(hooks);
+                return true;
+            } catch (Exception e) {
+                LogUtil.Log("failed to hook get mod update database url", LogLevel.Error);
+                Logger.LogDetailed(e);
+
+                hooks.ForEach(hook => hook?.Dispose());
+                return false;
+            }
+        }
+
+        private static bool TryHookGetEverestUpdateDatabaseUrl() {
+            // undo hooks when exception occurs, so we need to manually apply hooks
+            ILHookConfig ilHookConfig = new ILHookConfig {ManualApply = true};
+
+            List<IDetour> hooks = new List<IDetour>();
+            try {
                 hooks.Add(new ILHook(Type.GetType("Celeste.Mod.Everest+Updater, Celeste").FindMethod("GetEverestUpdaterDatabaseURL"),
                     IL_Updater_GetEverestUpdaterDatabaseURL, ilHookConfig));
+
+                hooks.ForEach(hook => hook.Apply());
+
+                appliedHooks.AddRange(hooks);
+                return true;
+            } catch (Exception e) {
+                LogUtil.Log("failed to hook get everest update database url", LogLevel.Error);
+                Logger.LogDetailed(e);
+
+                hooks.ForEach(hook => hook?.Dispose());
+                return false;
+            }
+        }
+
+        private static bool TryHookServerPreparingFiles() {
+            // undo hooks when exception occurs, so we need to manually apply hooks
+            ILHookConfig ilHookConfig = new ILHookConfig {ManualApply = true};
+
+            List<IDetour> hooks = new List<IDetour>();
+            try {
                 hooks.Add(new ILHook(typeof(ModUpdaterHelper).FindMethod("DownloadModUpdateList"),
                     IL_ModUpdaterHelper_DownloadModUpdateList, ilHookConfig));
                 hooks.Add(new ILHook(Type.GetType("Celeste.Mod.UI.OuiModUpdateList, Celeste").FindMethod("downloadMod"),
@@ -48,17 +101,16 @@ namespace Celeste.Mod.ChinaMirror.Modules {
                     IL_Updater_DoUpdate, ilHookConfig));
 
                 hooks.ForEach(hook => hook.Apply());
+
+                appliedHooks.AddRange(hooks);
+                return true;
             } catch (Exception e) {
-                LogUtil.Log("failed to hook", LogLevel.Error);
+                LogUtil.Log("failed to hook server preparing files", LogLevel.Error);
                 Logger.LogDetailed(e);
 
-                Unload();
+                hooks.ForEach(hook => hook?.Dispose());
+                return false;
             }
-        }
-
-        public static void Unload() {
-            hooks.ForEach(hook => hook?.Dispose());
-            hooks.Clear();
         }
 
         private static void IL_ModUpdaterHelper_getModUpdaterDatabaseUrl(ILContext il) {
