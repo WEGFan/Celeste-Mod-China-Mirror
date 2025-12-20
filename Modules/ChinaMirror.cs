@@ -117,24 +117,26 @@ namespace Celeste.Mod.ChinaMirror.Modules {
             ILCursor cursor = new ILCursor(il);
 
             // change the modupdater.txt url to mirror server
-            cursor.GotoNext(MoveType.Before,
-                instr => instr.MatchLdstr(out string str) && str.Contains("https://everestapi.github.io/"));
-
-            string newUrl = ((string)cursor.Next.Operand)
-                .Let(it => it.Replace("https://everestapi.github.io/", new Uri(ServerApi.Host, "/api/v1/file/").ToString()));
-            cursor.Next.Operand = newUrl;
+            while (cursor.TryGotoNext(MoveType.Before,
+                instr => instr.MatchLdstr(out string str) && str.Contains("https://everestapi.github.io/"))
+            ) {
+                string newUrl = ((string)cursor.Next.Operand)
+                    .Let(it => it.Replace("https://everestapi.github.io/", new Uri(ServerApi.Host, "/api/v2/download/").ToString()));
+                cursor.Next.Operand = newUrl;
+            }
         }
 
         private static void IL_Updater_GetEverestUpdaterDatabaseURL(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
             // change the everestupdater.txt url to mirror server
-            cursor.GotoNext(MoveType.Before,
-                instr => instr.MatchLdstr(out string str) && str.Contains("https://everestapi.github.io/"));
-
-            string newUrl = ((string)cursor.Next.Operand)
-                .Let(it => it.Replace("https://everestapi.github.io/", new Uri(ServerApi.Host, "/api/v2/download/").ToString()));
-            cursor.Next.Operand = newUrl;
+            while (cursor.TryGotoNext(MoveType.Before,
+                instr => instr.MatchLdstr(out string str) && str.Contains("https://everestapi.github.io/"))
+            ) {
+                string newUrl = ((string)cursor.Next.Operand)
+                    .Let(it => it.Replace("https://everestapi.github.io/", new Uri(ServerApi.Host, "/api/v2/download/").ToString()));
+                cursor.Next.Operand = newUrl;
+            }
         }
 
         private static void IL_ModUpdaterHelper_DownloadModUpdateList(ILContext il) {
